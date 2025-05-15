@@ -229,6 +229,39 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2025/05/12/I2C%20Loopback%20Slave/" target="_self">
+          I2C Loopback Slave
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/05/12/I2C%20Loopback%20Slave/" target="_self">
+        <div>
+          1.启用内核的 I2C Slave 功能和 EEPROM 模拟驱动,我是直接修改 .config 12CONFIG_I2C_SLAVE=yCONFIG_I2C_SLAVE_EEPROM=y  （我的i2c-0为主机，i2c-1为从机） 2.手动添加从机模拟设备节点 #####(刚开始检测不到设备就是这里出了问题)##### 1echo eeprom 0x50 &gt; /sys/bus/i2c/d
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-05-12 23:00" pubdate>
+              2025-05-12
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2025/05/12/imx6ull%E7%A7%BB%E6%A4%8D%E4%B8%BB%E7%BA%BF%E5%86%85%E6%A0%B86.12.0-rc5-dirty/" target="_self">
           imx6ull移植v6.15-rc1主线内核
         </a>
@@ -247,6 +280,39 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2025-05-12 23:00" pubdate>
               2025-05-12
+            </time>
+          </div>
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2025/05/11/%E5%85%A8%E5%BF%97A33%E7%9A%84%E5%90%AF%E5%8A%A8%E6%96%B9%E5%BC%8F/" target="_self">
+          全志A33启动方式
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2025/05/11/%E5%85%A8%E5%BF%97A33%E7%9A%84%E5%90%AF%E5%8A%A8%E6%96%B9%E5%BC%8F/" target="_self">
+        <div>
+          全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式   NAND Flash 启动   原理：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。 Boot0 的作用：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。 缺点：N
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-05-11 14:00" pubdate>
+              2025-05-11
             </time>
           </div>
         

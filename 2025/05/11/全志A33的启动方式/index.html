@@ -1,0 +1,674 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Hailin">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式   NAND Flash 启动   原理：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。 Boot0 的作用：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。 缺点：N">
+<meta property="og:type" content="article">
+<meta property="og:title" content="全志A33启动方式">
+<meta property="og:url" content="http://example.com/2025/05/11/%E5%85%A8%E5%BF%97A33%E7%9A%84%E5%90%AF%E5%8A%A8%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="HL&#39;s blog">
+<meta property="og:description" content="全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式   NAND Flash 启动   原理：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。 Boot0 的作用：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。 缺点：N">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center">
+<meta property="article:published_time" content="2025-05-11T06:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-15T11:23:24.306Z">
+<meta property="article:author" content="Hailin">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center">
+  
+  
+  
+  <title>全志A33启动方式 - HL&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="全志A33启动方式"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-05-11 14:00" pubdate>
+          2025年5月11日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          728 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          7 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">全志A33启动方式</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ol>
+<li><h2 id="NAND-Flash-启动"><a href="#NAND-Flash-启动" class="headerlink" title="NAND Flash 启动"></a><strong>NAND Flash 启动</strong></h2></li>
+</ol>
+<ul>
+<li><strong>原理</strong>：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。</li>
+<li><strong>Boot0 的作用</strong>：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。</li>
+<li><strong>缺点</strong>：NAND Flash 不可随机读取，需要 ECC 和 FTL 管理，启动过程较复杂。</li>
+</ul>
+<p>那么什么是 ECC 和 FTL 呢？</p>
+<p>首先是ECC</p>
+<ul>
+<li>ECC（Error Correction Code）纠错码，用于检测和纠正 NAND Flash 存储过程中出现的位错误（bit error）</li>
+</ul>
+<p>  因为NAND Flash 可靠性相对较低，经过多次擦写后，容易出现位翻转（bit-flip）。</p>
+<p>  特别是 MLC、TLC 类型的 NAND Flash，出错概率更高。</p>
+<ul>
+<li><p>工作原理：写入数据时，会同时写入一个 ECC 校验，读取数据时，用 ECC 校验是否有错误并进行纠正。</p>
+</li>
+<li><p>常见的ECC类型：</p>
+<p>BCH RS LDPC</p>
+</li>
+<li><p>ECC 通常存储在 <strong>OOB 区（Out-Of-Band 区）</strong>，即 NAND Flash 的<strong>每一页</strong>数据旁边的一小块区域。</p>
+</li>
+</ul>
+<p>FTL </p>
+<ul>
+<li>屏蔽 NAND Flash 的物理擦写机制和坏块管理，为上层提供像块设备一样的访问方式（比如像磁盘一样顺序读写）。</li>
+<li>Linux 中由 MTD + UBI + UBIFS 提供支持。</li>
+</ul>
+<h2 id="2-NOR-Flash-启动"><a href="#2-NOR-Flash-启动" class="headerlink" title="2.NOR Flash 启动"></a>2.NOR Flash 启动</h2><ul>
+<li><strong>原理</strong>：芯片从 NOR Flash 直接取指令执行（XIP：eXecute In Place），即 BootROM 直接从 NOR 读取并执行 Boot0。</li>
+<li><strong>优点</strong>：访问简单，启动快，适合做安全引导。</li>
+<li><strong>缺点</strong>：容量小。</li>
+</ul>
+<h2 id="3-SD-卡启动"><a href="#3-SD-卡启动" class="headerlink" title="3.SD 卡启动"></a>3.SD 卡启动</h2><p>这个就是一种非常常见的启动方式了</p>
+<ul>
+<li><strong>原理</strong>：芯片上电后尝试从 SD 卡（或 eMMC）中读取 Boot0，如果存在合法的启动分区（如全志的 FES 格式或 FAT&#x2F;EXT 文件系统中的 boot 文件），则加载执行。</li>
+<li><strong>优点</strong>：开发调试方便，可热插拔。不依赖板载存储，易于更新系统。</li>
+<li><strong>缺点</strong>：插拔稳定性差，不适合量产产品长期运行。</li>
+</ul>
+<h2 id="4-USB-启动（FEL-模式）"><a href="#4-USB-启动（FEL-模式）" class="headerlink" title="4.USB 启动（FEL 模式）"></a>4.USB 启动（FEL 模式）</h2><ul>
+<li><p><strong>原理</strong>：如果前几种介质都未能启动成功，或者按下某个启动键进入“USB启动&#x2F;FEL模式”，芯片进入 USB FEL 模式，等待通过 USB 口接入主机（如 PC）下载并运行启动程序。</p>
+</li>
+<li><p><strong>FEL</strong> 是全志芯片特有的一种 USB 下载协议（类似串口烧录）。</p>
+</li>
+<li><p><strong>优点</strong>：无需板载存储即可烧录&#x2F;启动系统。</p>
+</li>
+<li><p><strong>缺点</strong>：启动速度慢，依赖外部工具。</p>
+</li>
+</ul>
+<h3 id="解释一下什么是FEL模式"><a href="#解释一下什么是FEL模式" class="headerlink" title="解释一下什么是FEL模式"></a>解释一下什么是FEL模式</h3><p><strong>FEL（Firmware Easy Loader）模式</strong> 是全志芯片的 <strong>USB 下载启动模式</strong>，当没有有效的启动介质时（或者人为触发）进入。</p>
+<p>全志芯片上电后，从 BootROM 尝试启动 NAND、eMMC、SD 等存储介质，如果没有发现有效的 Boot0，会自动进入 FEL 模式（或通过按键强制进入），芯片在 USB 接口上枚举为一个特殊设备（全志的 USB Vendor ID 和 Product ID）主机（通常是电脑）通过 <code>sunxi-fel</code> 工具向芯片 RAM 下载并执行程序。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>全志A33启动方式</div>
+      <div>http://example.com/2025/05/11/全志A33的启动方式/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Hailin</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年5月11日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/05/12/imx6ull%E7%A7%BB%E6%A4%8D%E4%B8%BB%E7%BA%BF%E5%86%85%E6%A0%B86.12.0-rc5-dirty/" title="imx6ull移植v6.15-rc1主线内核">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">imx6ull移植v6.15-rc1主线内核</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/05/11/%E5%BC%82%E5%B8%B8%E5%90%91%E9%87%8F%E8%A1%A8/" title="异常向量表">
+                        <span class="hidden-mobile">异常向量表</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
