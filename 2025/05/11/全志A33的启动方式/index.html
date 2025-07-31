@@ -19,21 +19,23 @@
   <meta name="author" content="Hailin">
   <meta name="keywords" content="">
   
-    <meta name="description" content="启动无线网卡 wlan01ip link set wlan0 up  修改配置文件123456789101112vi &#x2F;etc&#x2F;wpa_supplicant&#x2F;wpa_supplicant.conf##注意 &#x3D;处不能有空格##ctrl_interface&#x3D;&#x2F;var&#x2F;run&#x2F;wpa_supplicantupdate_config&#x3D;1network&#x3D;&#123;    ssid&#x3D;&quot;TP-LIN">
+    <meta name="description" content="全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式   NAND Flash 启动   原理：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。 Boot0 的作用：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。 缺点：N">
 <meta property="og:type" content="article">
-<meta property="og:title" content="基于spacemit-k1 wifi连接">
-<meta property="og:url" content="http://example.com/2025/07/31/spacemit-k1%20wifi%E8%BF%9E%E6%8E%A5/index.html">
+<meta property="og:title" content="全志A33启动方式">
+<meta property="og:url" content="http://example.com/2025/05/11/%E5%85%A8%E5%BF%97A33%E7%9A%84%E5%90%AF%E5%8A%A8%E6%96%B9%E5%BC%8F/index.html">
 <meta property="og:site_name" content="EncrowThorne19&#39;s blog">
-<meta property="og:description" content="启动无线网卡 wlan01ip link set wlan0 up  修改配置文件123456789101112vi &#x2F;etc&#x2F;wpa_supplicant&#x2F;wpa_supplicant.conf##注意 &#x3D;处不能有空格##ctrl_interface&#x3D;&#x2F;var&#x2F;run&#x2F;wpa_supplicantupdate_config&#x3D;1network&#x3D;&#123;    ssid&#x3D;&quot;TP-LIN">
+<meta property="og:description" content="全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式   NAND Flash 启动   原理：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。 Boot0 的作用：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。 缺点：N">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-07-31T07:00:00.000Z">
-<meta property="article:modified_time" content="2025-07-31T09:11:11.304Z">
+<meta property="og:image" content="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center">
+<meta property="article:published_time" content="2025-05-11T06:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-15T11:23:24.306Z">
 <meta property="article:author" content="Hailin">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center">
   
   
   
-  <title>基于spacemit-k1 wifi连接 - EncrowThorne19&#39;s blog</title>
+  <title>全志A33启动方式 - EncrowThorne19&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -199,7 +201,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="基于spacemit-k1 wifi连接"></span>
+            <span id="subtitle" data-typed-text="全志A33启动方式"></span>
           
         </div>
 
@@ -210,8 +212,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-07-31 15:00" pubdate>
-          2025年7月31日 下午
+        <time datetime="2025-05-11 14:00" pubdate>
+          2025年5月11日 下午
         </time>
       </span>
     
@@ -222,7 +224,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          135 字
+          728 字
         
       </span>
     
@@ -233,7 +235,7 @@
         
         
         
-          2 分钟
+          7 分钟
         
       </span>
     
@@ -270,23 +272,65 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">基于spacemit-k1 wifi连接</h1>
+            <h1 id="seo-header">全志A33启动方式</h1>
             
             
               <div class="markdown-body">
                 
-                <h3 id="启动无线网卡-wlan0"><a href="#启动无线网卡-wlan0" class="headerlink" title="启动无线网卡 wlan0"></a>启动无线网卡 wlan0</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> wlan0 up<br></code></pre></td></tr></table></figure>
-
-<h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs routeros">vi /etc/wpa_supplicant/wpa_supplicant.conf<br><br><span class="hljs-comment">##注意 =处不能有空格##</span><br><span class="hljs-attribute">ctrl_interface</span>=/var/run/wpa_supplicant<br><span class="hljs-attribute">update_config</span>=1<br>network=&#123;<br>    <span class="hljs-attribute">ssid</span>=<span class="hljs-string">&quot;TP-LINK_FF35&quot;</span><br>    <span class="hljs-attribute">psk</span>=<span class="hljs-string">&quot;密码&quot;</span><br>    <span class="hljs-attribute">key_mgmt</span>=WPA-PSK<br>    <span class="hljs-attribute">scan_ssid</span>=1<br>    <span class="hljs-attribute">frequency</span>=2412<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h3 id="连接wifi"><a href="#连接wifi" class="headerlink" title="连接wifi"></a>连接wifi</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_supplicant</span> -B -i wlan0 -c /etc/wp<span class="hljs-built_in">a_supplicant</span>/wp<span class="hljs-built_in">a_supplicant</span>.conf<br></code></pre></td></tr></table></figure>
-
-<h3 id="查看连接状态"><a href="#查看连接状态" class="headerlink" title="查看连接状态"></a>查看连接状态</h3><p>##注：如一直处于扫描状态先考虑是不是信号问题（卡了两个小时…..）</p>
-<figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_cli</span> -i wlan0 status<br></code></pre></td></tr></table></figure>
-
-<h3 id="查看附近wifi"><a href="#查看附近wifi" class="headerlink" title="查看附近wifi"></a>查看附近wifi</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_cli</span> -i wlan0 scan_result<br></code></pre></td></tr></table></figure>
-
-<h3 id="分配IPv4地址"><a href="#分配IPv4地址" class="headerlink" title="分配IPv4地址"></a>分配IPv4地址</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs routeros">udhcpc -b -i wlan0<br><br>如 udhcpc 不能使用可以手动分配<span class="hljs-built_in"></span><br><span class="hljs-built_in">ip </span>addr <span class="hljs-built_in">add</span> 192.168.0.100/24 dev wlan0  ####注意网段####<span class="hljs-built_in"></span><br><span class="hljs-built_in">ip </span>link <span class="hljs-built_in">set</span> wlan0 up<span class="hljs-built_in"></span><br><span class="hljs-built_in">ip route </span><span class="hljs-built_in">add</span><span class="hljs-built_in"> default </span>via 192.168.0.1<br><br>echo <span class="hljs-string">&quot;nameserver 8.8.8.8&quot;</span> &gt; /etc/resolv.conf<br></code></pre></td></tr></table></figure>
+                <p>全志A33芯片支持NAND&#x2F;Nor Flash，SD card，USB四种启动方式</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/3dc6d21ba22900fac2ca00b90d0407f1.png#pic_center" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ol>
+<li><h2 id="NAND-Flash-启动"><a href="#NAND-Flash-启动" class="headerlink" title="NAND Flash 启动"></a><strong>NAND Flash 启动</strong></h2></li>
+</ol>
+<ul>
+<li><strong>原理</strong>：芯片上电后，内部 BootROM（固化在芯片中的最小启动程序）会尝试访问 NAND Flash，从中读取 Boot0（一级启动程序）加载到内部 SRAM 并执行。</li>
+<li><strong>Boot0 的作用</strong>：初始化 DRAM，并加载 Boot1（如 U-Boot）到 DRAM。</li>
+<li><strong>缺点</strong>：NAND Flash 不可随机读取，需要 ECC 和 FTL 管理，启动过程较复杂。</li>
+</ul>
+<p>那么什么是 ECC 和 FTL 呢？</p>
+<p>首先是ECC</p>
+<ul>
+<li>ECC（Error Correction Code）纠错码，用于检测和纠正 NAND Flash 存储过程中出现的位错误（bit error）</li>
+</ul>
+<p>  因为NAND Flash 可靠性相对较低，经过多次擦写后，容易出现位翻转（bit-flip）。</p>
+<p>  特别是 MLC、TLC 类型的 NAND Flash，出错概率更高。</p>
+<ul>
+<li><p>工作原理：写入数据时，会同时写入一个 ECC 校验，读取数据时，用 ECC 校验是否有错误并进行纠正。</p>
+</li>
+<li><p>常见的ECC类型：</p>
+<p>BCH RS LDPC</p>
+</li>
+<li><p>ECC 通常存储在 <strong>OOB 区（Out-Of-Band 区）</strong>，即 NAND Flash 的<strong>每一页</strong>数据旁边的一小块区域。</p>
+</li>
+</ul>
+<p>FTL </p>
+<ul>
+<li>屏蔽 NAND Flash 的物理擦写机制和坏块管理，为上层提供像块设备一样的访问方式（比如像磁盘一样顺序读写）。</li>
+<li>Linux 中由 MTD + UBI + UBIFS 提供支持。</li>
+</ul>
+<h2 id="2-NOR-Flash-启动"><a href="#2-NOR-Flash-启动" class="headerlink" title="2.NOR Flash 启动"></a>2.NOR Flash 启动</h2><ul>
+<li><strong>原理</strong>：芯片从 NOR Flash 直接取指令执行（XIP：eXecute In Place），即 BootROM 直接从 NOR 读取并执行 Boot0。</li>
+<li><strong>优点</strong>：访问简单，启动快，适合做安全引导。</li>
+<li><strong>缺点</strong>：容量小。</li>
+</ul>
+<h2 id="3-SD-卡启动"><a href="#3-SD-卡启动" class="headerlink" title="3.SD 卡启动"></a>3.SD 卡启动</h2><p>这个就是一种非常常见的启动方式了</p>
+<ul>
+<li><strong>原理</strong>：芯片上电后尝试从 SD 卡（或 eMMC）中读取 Boot0，如果存在合法的启动分区（如全志的 FES 格式或 FAT&#x2F;EXT 文件系统中的 boot 文件），则加载执行。</li>
+<li><strong>优点</strong>：开发调试方便，可热插拔。不依赖板载存储，易于更新系统。</li>
+<li><strong>缺点</strong>：插拔稳定性差，不适合量产产品长期运行。</li>
+</ul>
+<h2 id="4-USB-启动（FEL-模式）"><a href="#4-USB-启动（FEL-模式）" class="headerlink" title="4.USB 启动（FEL 模式）"></a>4.USB 启动（FEL 模式）</h2><ul>
+<li><p><strong>原理</strong>：如果前几种介质都未能启动成功，或者按下某个启动键进入“USB启动&#x2F;FEL模式”，芯片进入 USB FEL 模式，等待通过 USB 口接入主机（如 PC）下载并运行启动程序。</p>
+</li>
+<li><p><strong>FEL</strong> 是全志芯片特有的一种 USB 下载协议（类似串口烧录）。</p>
+</li>
+<li><p><strong>优点</strong>：无需板载存储即可烧录&#x2F;启动系统。</p>
+</li>
+<li><p><strong>缺点</strong>：启动速度慢，依赖外部工具。</p>
+</li>
+</ul>
+<h3 id="解释一下什么是FEL模式"><a href="#解释一下什么是FEL模式" class="headerlink" title="解释一下什么是FEL模式"></a>解释一下什么是FEL模式</h3><p><strong>FEL（Firmware Easy Loader）模式</strong> 是全志芯片的 <strong>USB 下载启动模式</strong>，当没有有效的启动介质时（或者人为触发）进入。</p>
+<p>全志芯片上电后，从 BootROM 尝试启动 NAND、eMMC、SD 等存储介质，如果没有发现有效的 Boot0，会自动进入 FEL 模式（或通过按键强制进入），芯片在 USB 接口上枚举为一个特殊设备（全志的 USB Vendor ID 和 Product ID）主机（通常是电脑）通过 <code>sunxi-fel</code> 工具向芯片 RAM 下载并执行程序。</p>
 
                 
               </div>
@@ -304,8 +348,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>基于spacemit-k1 wifi连接</div>
-      <div>http://example.com/2025/07/31/spacemit-k1 wifi连接/</div>
+      <div>全志A33启动方式</div>
+      <div>http://example.com/2025/05/11/全志A33的启动方式/</div>
     </div>
     <div class="license-meta">
       
@@ -317,7 +361,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2025年7月31日</div>
+          <div>2025年5月11日</div>
         </div>
       
       
@@ -349,12 +393,18 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2025/05/12/I2C%20Loopback%20Slave/" title="I2C Loopback Slave">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">I2C Loopback Slave</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/05/12/I2C%20Loopback%20Slave/" title="I2C Loopback Slave">
-                        <span class="hidden-mobile">I2C Loopback Slave</span>
+                      <a href="/2025/05/11/%E5%BC%82%E5%B8%B8%E5%90%91%E9%87%8F%E8%A1%A8/" title="异常向量表">
+                        <span class="hidden-mobile">异常向量表</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

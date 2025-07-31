@@ -1,0 +1,720 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Hailin">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一、层次与数据结构GPIO子系统主要的几个数据结构： struct gpio_chip {}； struct gpio_device {}； struct gpio_desc {}； 对于一个GPIO Cnotroller ,都有相对应的一个 gpio_chip结构体，通过其内部的函数指针最终来操作硬件。 struct gpio_chip定义如下 include\linux\gpio\driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于MainLine Kernel的GPIO子系统分析">
+<meta property="og:url" content="http://example.com/2025/05/03/GPIO%E5%AD%90%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="EncrowThorne19&#39;s blog">
+<meta property="og:description" content="一、层次与数据结构GPIO子系统主要的几个数据结构： struct gpio_chip {}； struct gpio_device {}； struct gpio_desc {}； 对于一个GPIO Cnotroller ,都有相对应的一个 gpio_chip结构体，通过其内部的函数指针最终来操作硬件。 struct gpio_chip定义如下 include\linux\gpio\driver">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-05-03T02:00:00.000Z">
+<meta property="article:modified_time" content="2025-05-15T11:21:48.414Z">
+<meta property="article:author" content="Hailin">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>基于MainLine Kernel的GPIO子系统分析 - EncrowThorne19&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于MainLine Kernel的GPIO子系统分析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-05-03 10:00" pubdate>
+          2025年5月3日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">基于MainLine Kernel的GPIO子系统分析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一、层次与数据结构"><a href="#一、层次与数据结构" class="headerlink" title="一、层次与数据结构"></a>一、层次与数据结构</h2><p>GPIO子系统主要的几个数据结构：</p>
+<p>struct gpio_chip {}；</p>
+<p>struct gpio_device {}；</p>
+<p>struct gpio_desc {}；</p>
+<p>对于一个GPIO Cnotroller ,都有相对应的一个 gpio_chip结构体，通过其内部的函数指针最终来操作硬件。</p>
+<p>struct gpio_chip定义如下 include\linux\gpio\driver.h</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_chip</span> &#123;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span>		*label;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_device</span>	*gpiodev;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">device</span>		*parent;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">fwnode_handle</span>	*fwnode;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">module</span>		*owner;<br><br>	<span class="hljs-built_in">int</span>			(*request)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>	<span class="hljs-built_in">void</span>			(*free)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>	<span class="hljs-built_in">int</span>			(*get_direction)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>	<span class="hljs-built_in">int</span>			(*direction_input)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>	<span class="hljs-built_in">int</span>			(*direction_output)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset, <span class="hljs-type">int</span> value);<br>	<span class="hljs-built_in">int</span>			(*get)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>	<span class="hljs-built_in">int</span>			(*get_multiple)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *mask,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *bits);<br>	<span class="hljs-built_in">void</span>			(*set)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset, <span class="hljs-type">int</span> value);<br>	<span class="hljs-built_in">void</span>			(*set_multiple)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *mask,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *bits);<br>	<span class="hljs-built_in">int</span>			(*set_rv)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>					  <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset,<br>					  <span class="hljs-type">int</span> value);<br>	<span class="hljs-built_in">int</span>			(*set_multiple_rv)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						   <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *mask,<br>						   <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> *bits);<br>	<span class="hljs-built_in">int</span>			(*set_config)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>					      <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset,<br>					      <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> config);<br>	<span class="hljs-built_in">int</span>			(*to_irq)(<span class="hljs-keyword">struct</span> gpio_chip *gc,<br>						<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset);<br>				..........<br>				<br>	<span class="hljs-type">int</span>			base;<br>	u16			ngpio;<br>	u16			offset;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span>		*<span class="hljs-type">const</span> *names;<br>	<span class="hljs-type">bool</span>			can_sleep;<br></code></pre></td></tr></table></figure>
+
+<p>在驱动里定义并初始化一个gpio_chip，使用 gpiochip_add_data()注册。</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs xl">#define gpiochip_add_data(gc, <span class="hljs-keyword">data</span>) (&#123;		\<br>		static struct lock_class_key lock_key;	\<br>		static struct lock_class_key request_key;	  \<br>		gpiochip_add_data_with_key(gc, <span class="hljs-keyword">data</span>, &amp;lock_key, \       &lt;-----实际调用函数<br>					   &amp;request_key);	  \<br>	&#125;)<br>	<br>************<br>************<br>gpiochip_add_data_with_key(gc, <span class="hljs-keyword">data</span>, &amp;lock_key, <br>               &amp;request_key)<br> &#123;<br> ........<br> <br> 	<span class="hljs-function"><span class="hljs-title">gdev</span>-&gt;</span>dev.type = &amp;gpio_dev_type;<br>	<span class="hljs-function"><span class="hljs-title">gdev</span>-&gt;</span>dev.bus = &amp;gpio_bus_type;<br><br>	<span class="hljs-comment">/* gdev 绑定 gpio_device */</span><br>	<span class="hljs-function"><span class="hljs-title">gdev</span>-&gt;</span><span class="hljs-function"><span class="hljs-title">dev</span>.parent = gc-&gt;</span>parent;<br>	<span class="hljs-function"><span class="hljs-title">rcu_assign_pointer</span>(gdev-&gt;</span>chip, gc);<br>	<span class="hljs-comment">/* 反向绑定 */</span><br>	<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>gpiodev = gdev;<br>	gpiochip_set_data(gc, <span class="hljs-keyword">data</span>);<br> <br> ........<br> <br>    <span class="hljs-function"><span class="hljs-title">base</span> = gc-&gt;</span>base;<br>            <span class="hljs-keyword">if</span> (base &lt; <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-comment">/* 自动分配 */</span><br>                <span class="hljs-function"><span class="hljs-title">base</span> = gpiochip_find_base_unlocked(gc-&gt;</span>ngpio);<br>                <span class="hljs-keyword">if</span> (base &lt; <span class="hljs-number">0</span>) &#123;<br>                    ret = base;<br>                    base = <span class="hljs-number">0</span>;<br>                    goto err_free_label;<br>                &#125;<br><br>                <span class="hljs-comment">/*</span><br><span class="hljs-comment">                 * <span class="hljs-doctag">TODO:</span> it should not be necessary to reflect the</span><br><span class="hljs-comment">                 * assigned base outside of the GPIO subsystem. Go over</span><br><span class="hljs-comment">                 * drivers and see if anyone makes use of this, else</span><br><span class="hljs-comment">                 * drop this and assign a poison instead.</span><br><span class="hljs-comment">                 */</span><br>                <span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>base = base;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-function"><span class="hljs-title">dev_warn</span>(&amp;gdev-&gt;</span>dev,<br>                     <span class="hljs-string">&quot;Static allocation of GPIO base is deprecated, use dynamic allocation.\n&quot;</span>);<br>            &#125;<br><br>            <span class="hljs-function"><span class="hljs-title">gdev</span>-&gt;</span>base = base;<br>			<span class="hljs-comment">/* 添加到链表 */</span><br>            ret = gpiodev_add_to_list_unlocked(gdev);<br>            <span class="hljs-keyword">if</span> (ret) &#123;<br>                chip_err(gc, <span class="hljs-string">&quot;GPIO integer space overlap, cannot add chip\n&quot;</span>);<br>                goto err_free_label;<br>            &#125;<br>            ......<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其中比较关键的是	</p>
+<p>​       gdev-&gt;dev.parent &#x3D; gc-&gt;parent;<br>​	rcu_assign_pointer(gdev-&gt;chip, gc);<br>​	&#x2F;* 反向绑定 *&#x2F;<br>​	gc-&gt;gpiodev &#x3D; gdev;</p>
+<p>实现了gpio_chip &lt;——-&gt; gpio_device 的双向绑定。</p>
+<p>我们可以看到，这个函数在初始化完这个结构体后，<code>piodev_add_to_list_unlocked</code>  并把它加入全局链表 gpio_devices，正式注册到系统中供其他子系统（比如 pinctrl、IRQ、设备树解析等）使用。</p>
+<h3 id="问：那么全局链表-gpio-devices-是干嘛的？"><a href="#问：那么全局链表-gpio-devices-是干嘛的？" class="headerlink" title="问：那么全局链表 gpio_devices 是干嘛的？"></a>问：那么全局链表 <code>gpio_devices</code> 是干嘛的？</h3><p>这是所有注册到内核的 GPIO 控制器的“数据库”，很多操作都会遍历它，比如：</p>
+<p>1.用户态访问 <code>/sys/class/gpio/</code></p>
+<p>2.设备树中 <code>gpio = &lt;&amp;gpioX ...&gt;</code> 时查找控制器</p>
+<p>3.子系统（如 <code>pinctrl</code>, <code>irqchip</code>）查找 GPIO 资源</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sql">gpio_devices 里存的是所有注册的 gpio_device（每个 controller 一份）；<br><br>每个 gpio_device 管理一个 <span class="hljs-keyword">desc</span> 数组；<br><br>查找 GPIO 时，从dtb → 找 gpio controller → 找 <span class="hljs-keyword">desc</span>[<span class="hljs-keyword">offset</span>]<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、函数分析"><a href="#二、函数分析" class="headerlink" title="二、函数分析"></a>二、函数分析</h2><p>我们在分配GPIO资源的时候一般有两种方法，第一种是传统方法，自己在驱动手动实现一个gpio_request()gpio_direction_input()等，另一种则是使用dtb来指定好引脚信息，通过platfrom_device解析后，系统自动gpio_request() gpio_direction_input()…….。</p>
+<h3 id="1-首先是gpiod-get"><a href="#1-首先是gpiod-get" class="headerlink" title="1.首先是gpiod_get()"></a>1.首先是gpiod_get()</h3><figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs scss"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * gpiod_get - obtain a GPIO for a given GPIO function</span><br><span class="hljs-comment"> * @dev:	GPIO consumer, can be NULL for system-global GPIOs</span><br><span class="hljs-comment"> * @con_id:	function within the GPIO consumer</span><br><span class="hljs-comment"> * @flags:	optional GPIO initialization flags</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Returns:</span><br><span class="hljs-comment"> * The GPIO descriptor corresponding to the function @con_id of device</span><br><span class="hljs-comment"> * dev, -ENOENT if no GPIO has been assigned to the requested function, or</span><br><span class="hljs-comment"> * another IS_ERR() code if an error occurred while trying to acquire the GPIO.</span><br><span class="hljs-comment"> */</span><br>struct gpio_desc *__must_check <span class="hljs-built_in">gpiod_get</span>(struct device *dev, const char *con_id,<br>					 enum gpiod_flags flags)<br>&#123;<br>	return <span class="hljs-built_in">gpiod_get_index</span>(dev, con_id, <span class="hljs-number">0</span>, flags);<br>&#125;<br><span class="hljs-built_in">EXPORT_SYMBOL_GPL</span>(gpiod_get);<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-gpiod-get-—-gpiod-get-index"><a href="#2-gpiod-get-—-gpiod-get-index" class="headerlink" title="2.gpiod_get( )   —-&gt;  gpiod_get_index()"></a>2.gpiod_get( )   —-&gt;  gpiod_get_index()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * gpiod_get_index - obtain a GPIO from a multi-index GPIO function</span><br><span class="hljs-comment"> * @dev:	GPIO consumer, can be NULL for system-global GPIOs</span><br><span class="hljs-comment"> * @con_id:	function within the GPIO consumer</span><br><span class="hljs-comment"> * @idx:	index of the GPIO to obtain in the consumer</span><br><span class="hljs-comment"> * @flags:	optional GPIO initialization flags</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * This variant of gpiod_get() allows to access GPIOs other than the first</span><br><span class="hljs-comment"> * defined one for functions that define several GPIOs.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Returns:</span><br><span class="hljs-comment"> * A valid GPIO descriptor, -ENOENT if no GPIO has been assigned to the</span><br><span class="hljs-comment"> * requested function and/or index, or another IS_ERR() code if an error</span><br><span class="hljs-comment"> * occurred while trying to acquire the GPIO.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_desc</span> *<span class="hljs-function">__must_check <span class="hljs-title">gpiod_get_index</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device *dev,</span></span><br><span class="hljs-params"><span class="hljs-function">					       <span class="hljs-type">const</span> <span class="hljs-type">char</span> *con_id,</span></span><br><span class="hljs-params"><span class="hljs-function">					       <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> idx,</span></span><br><span class="hljs-params"><span class="hljs-function">					       <span class="hljs-keyword">enum</span> gpiod_flags flags)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">fwnode_handle</span> *fwnode = dev ? <span class="hljs-built_in">dev_fwnode</span>(dev) : <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *devname = dev ? <span class="hljs-built_in">dev_name</span>(dev) : <span class="hljs-string">&quot;?&quot;</span>;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *label = con_id ?: devname;<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">gpiod_find_and_request</span>(dev, fwnode, con_id, idx, flags, label, <span class="hljs-literal">true</span>);<br>&#125;<br><span class="hljs-built_in">EXPORT_SYMBOL_GPL</span>(gpiod_get_index);<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-—–-gpiod-find-and-request-："><a href="#3-—–-gpiod-find-and-request-：" class="headerlink" title="3,   —–&gt;gpiod_find_and_request()："></a>3,   —–&gt;gpiod_find_and_request()：</h3><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><code class="hljs stata">struct gpio_desc *gpiod_find_and_request(struct device *consumer,<br>					 struct fwnode_handle *fwnode,<br>					 <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *con_id,<br>					 unsigned int idx,<br>					 enum gpiod_flags flags,<br>					 <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *<span class="hljs-keyword">label</span>,<br>					 bool platform_lookup_allowed)<br>&#123;<br>	unsigned long lookupflags = GPIO_LOOKUP_FLAGS_DEFAULT;<br>	<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *name = function_name_or_default(con_id);<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * scoped_guard() is implemented as a for loop, meaning static</span><br><span class="hljs-comment">	 * analyzers will complain about these two not being initialized.</span><br><span class="hljs-comment">	 */</span><br>	struct gpio_desc *<span class="hljs-keyword">desc</span> = NULL;<br>	int <span class="hljs-keyword">ret</span> = 0;<br><br>	scoped_guard(srcu, &amp;gpio_devices_srcu) &#123;<br>		<span class="hljs-comment">/*gpiod_find_by_fwnode 从设备树 (DT) 或 ACPI 中查找该 GPIO 的 gpio_desc。</span><br><span class="hljs-comment">		 利用 con_id 和 idx 来定位某个 label 名下的某个 GPIO。</span><br><span class="hljs-comment">		*/</span><br>		<span class="hljs-keyword">desc</span> = gpiod_find_by_fwnode(fwnode, consumer, con_id, idx,<br>					    &amp;flags, &amp;lookupflags);<br>		<span class="hljs-keyword">if</span> (gpiod_not_found(<span class="hljs-keyword">desc</span>) &amp;&amp; platform_lookup_allowed) &#123;<br>			<span class="hljs-comment">/*</span><br><span class="hljs-comment">			 * Either we are not using DT or ACPI, or their lookup</span><br><span class="hljs-comment">			 * did not return a result. In that case, use platform</span><br><span class="hljs-comment">			 * lookup as a fallback.</span><br><span class="hljs-comment">			 */</span><br>			dev_dbg(consumer,<br>				<span class="hljs-string">&quot;using lookup tables for GPIO lookup\n&quot;</span>);<br>			<span class="hljs-keyword">desc</span> = gpiod_find(consumer, con_id, idx, &amp;lookupflags);<br>		&#125;<br><br>		<span class="hljs-keyword">if</span> (IS_ERR(<span class="hljs-keyword">desc</span>)) &#123;<br>			dev_dbg(consumer, <span class="hljs-string">&quot;No GPIO consumer %s found\n&quot;</span>, name);<br>			<span class="hljs-keyword">return</span> <span class="hljs-keyword">desc</span>;<br>		&#125;<br><br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * If a connection label was passed use that, else attempt to use</span><br><span class="hljs-comment">		 * the device name as label</span><br><span class="hljs-comment">		 */</span><br>		 <span class="hljs-comment">/* 这里就是通过DTB规定好的GPIO引脚，自动申请 */</span><br>		<span class="hljs-keyword">ret</span> = gpiod_request(<span class="hljs-keyword">desc</span>, <span class="hljs-keyword">label</span>);<br>	&#125;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-keyword">ret</span>) &#123;<br>		<span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">ret</span> == -EBUSY &amp;&amp; flags &amp; GPIOD_FLAGS_BIT_NONEXCLUSIVE))<br>			<span class="hljs-keyword">return</span> ERR_PTR(<span class="hljs-keyword">ret</span>);<br><br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * This happens when there are several consumers for</span><br><span class="hljs-comment">		 * the same GPIO line: we just return here without</span><br><span class="hljs-comment">		 * further initialization. It is a bit of a hack.</span><br><span class="hljs-comment">		 * This is necessary to support fixed regulators.</span><br><span class="hljs-comment">		 *</span><br><span class="hljs-comment">		 * <span class="hljs-doctag">FIXME:</span> Make this more sane and safe.</span><br><span class="hljs-comment">		 */</span><br>		dev_info(consumer, <span class="hljs-string">&quot;nonexclusive access to GPIO for %s\n&quot;</span>, name);<br>		<span class="hljs-keyword">return</span> <span class="hljs-keyword">desc</span>;<br>	&#125;<br><br>	<span class="hljs-keyword">ret</span> = gpiod_configure_flags(<span class="hljs-keyword">desc</span>, con_id, lookupflags, flags);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-keyword">ret</span> &lt; 0) &#123;<br>		gpiod_put(<span class="hljs-keyword">desc</span>);<br>		dev_err(consumer, <span class="hljs-string">&quot;setup of GPIO %s failed: %d\n&quot;</span>, name, <span class="hljs-keyword">ret</span>);<br>		<span class="hljs-keyword">return</span> ERR_PTR(<span class="hljs-keyword">ret</span>);<br>	&#125;<br><br>	gpiod_line_state_notify(<span class="hljs-keyword">desc</span>, GPIO_V2_LINE_CHANGED_REQUESTED);<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-keyword">desc</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到这和函数内部实现了解析设备树 gpiod_find_by_fwnode ，引脚申请、标志位设置。</p>
+<h2 id="三、i-mx6ull-probe解析"><a href="#三、i-mx6ull-probe解析" class="headerlink" title="三、i.mx6ull probe解析"></a>三、i.mx6ull probe解析</h2><h3 id="1-打开驱动源码-drivers-gpio-gpio-mxc-c，找到probe函数"><a href="#1-打开驱动源码-drivers-gpio-gpio-mxc-c，找到probe函数" class="headerlink" title="1.打开驱动源码  drivers\gpio\gpio-mxc.c，找到probe函数"></a>1.打开驱动源码  drivers\gpio\gpio-mxc.c，找到probe函数</h3><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs xl">static int mxc_gpio_probe(struct platform_device *pdev)<br>&#123;<br>	<span class="hljs-function"><span class="hljs-title">struct</span> device_node *np = pdev-&gt;</span>dev.of_node;<br>	struct mxc_gpio_port *port;   <br>	int irq_count;<br>	int irq_base;<br>	int err;<br>	<br>	<span class="hljs-function"><span class="hljs-title">port</span> = devm_kzalloc(&amp;pdev-&gt;</span>dev, sizeof(*port), GFP_KERNEL);<br>	<span class="hljs-keyword">if</span> (!port)<br>		return -ENOMEM;<br><br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span><span class="hljs-function"><span class="hljs-title">dev</span> = &amp;pdev-&gt;</span>dev;<br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span><span class="hljs-function"><span class="hljs-title">hwdata</span> = device_get_match_data(&amp;pdev-&gt;</span>dev);<br><br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>base = devm_platform_ioremap_resource(pdev, <span class="hljs-number">0</span>);<br>	<span class="hljs-function"><span class="hljs-title">if</span> (IS_ERR(port-&gt;</span>base))<br>		<span class="hljs-function"><span class="hljs-title">return</span> PTR_ERR(port-&gt;</span>base);<br>	......<br>	mxc_update_irq_chained_handler(port, <span class="hljs-literal">true</span>);<br>	<span class="hljs-function"><span class="hljs-title">err</span> = bgpio_init(&amp;port-&gt;</span><span class="hljs-function"><span class="hljs-title">gc</span>, &amp;pdev-&gt;</span>dev, <span class="hljs-number">4</span>,<br>			 <span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>base + GPIO_PSR,<br>			 <span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>base + GPIO_DR, NULL,<br>			 <span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>base + GPIO_GDIR, NULL,<br>			 BGPIOF_READ_OUTPUT_REG_SET);<br>	<span class="hljs-keyword">if</span> (err)<br>		goto out_bgio;<br>	.......<br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.request = mxc_gpio_request;<br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.free = mxc_gpio_free;<br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.to_irq = mxc_gpio_to_irq;<br>	<span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.base = of_alias_get_id(np, <span class="hljs-string">&quot;gpio&quot;</span>) * <span class="hljs-number">32</span>;<br><br>	<span class="hljs-function"><span class="hljs-title">err</span> = devm_gpiochip_add_data(&amp;pdev-&gt;</span><span class="hljs-function"><span class="hljs-title">dev</span>, &amp;port-&gt;</span>gc, port);<br>	<span class="hljs-keyword">if</span> (err)<br>		goto out_bgio;<br><br>	<span class="hljs-function"><span class="hljs-title">irq_base</span> = devm_irq_alloc_descs(&amp;pdev-&gt;</span>dev, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">32</span>, numa_node_id());<br>	<span class="hljs-keyword">if</span> (irq_base &lt; <span class="hljs-number">0</span>) &#123;<br>		err = irq_base;<br>		goto out_bgio;<br>	&#125;<br>		......<br>	<span class="hljs-function"><span class="hljs-title">list_add_tail</span>(&amp;port-&gt;</span>node, &amp;mxc_gpio_ports);<br>	return err;<br>&#125;<br><br>**************************<br>struct mxc_gpio_port &#123;<br>	struct list_head node;<br>	void __iomem *base;<br>	struct clk *clk;<br>	int irq;<br>	int irq_high;<br>	void (*mx_irq_handler)(struct irq_desc *desc);<br>	struct irq_domain *domain;<br>	struct gpio_chip gc;<br>	.....<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到这个函数主要就是在对一个gpio_chip进行分配、设置、注册。gpio_chip 在struct mxc_gpio_port *port;   结构体中。</p>
+<h3 id="2-bgpio-init"><a href="#2-bgpio-init" class="headerlink" title="2.bgpio_init()"></a>2.bgpio_init()</h3><p>重点关注probe里的 bgpio_init 函数，我们首先看传的参数： port-&gt;base + GPIO_PSR, port-&gt;base + GPIO_DR, NULL, port-&gt;base + GPIO_GDIR, NULL,这几个参数就是一些寄存器的虚拟地址，分别是状态寄存器，数据寄存器，方向寄存器.</p>
+<p>我们再进入函数内部：核心函数bgpio_setup_io</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs llvm">int bgpio_init(struct gpio_chip *<span class="hljs-keyword">gc</span><span class="hljs-punctuation">,</span> struct device *dev<span class="hljs-punctuation">,</span><br>	       unsigned long sz<span class="hljs-punctuation">,</span> <span class="hljs-type">void</span> __iomem *dat<span class="hljs-punctuation">,</span> <span class="hljs-type">void</span> __iomem *set<span class="hljs-punctuation">,</span><br>	       <span class="hljs-type">void</span> __iomem *clr<span class="hljs-punctuation">,</span> <span class="hljs-type">void</span> __iomem *dirout<span class="hljs-punctuation">,</span> <span class="hljs-type">void</span> __iomem *dirin<span class="hljs-punctuation">,</span><br>	       unsigned long flags)<br>&#123;<br>	int <span class="hljs-keyword">ret</span><span class="hljs-comment">;</span><br><span class="hljs-comment"></span><br>	raw_spin_lock_init(&amp;<span class="hljs-keyword">gc</span>-&gt;bgpio_lock)<span class="hljs-comment">;</span><br>	<span class="hljs-keyword">gc</span>-&gt;parent <span class="hljs-operator">=</span> dev<span class="hljs-comment">;</span><br>	<span class="hljs-keyword">gc</span>-&gt;<span class="hljs-type">label</span> <span class="hljs-operator">=</span> dev_name(dev)<span class="hljs-comment">;</span><br>	<span class="hljs-keyword">gc</span>-&gt;base <span class="hljs-operator">=</span> <span class="hljs-number">-1</span><span class="hljs-comment">;</span><br>	<span class="hljs-keyword">gc</span>-&gt;request <span class="hljs-operator">=</span> bgpio_request<span class="hljs-comment">;</span><br>	<span class="hljs-keyword">gc</span>-&gt;be_bits <span class="hljs-operator">=</span> !!(flags &amp; BGPIOF_BIG_ENDIAN)<span class="hljs-comment">;</span><br><span class="hljs-comment"></span><br>	<span class="hljs-keyword">ret</span> <span class="hljs-operator">=</span> gpiochip_get_ngpios(<span class="hljs-keyword">gc</span><span class="hljs-punctuation">,</span> dev)<span class="hljs-comment">;</span><br>	if (<span class="hljs-keyword">ret</span>)<br>		<span class="hljs-keyword">gc</span>-&gt;ngpio <span class="hljs-operator">=</span> <span class="hljs-keyword">gc</span>-&gt;bgpio_bits<span class="hljs-comment">;</span><br><span class="hljs-comment"></span><br>	<span class="hljs-keyword">ret</span> <span class="hljs-operator">=</span> bgpio_setup_io(<span class="hljs-keyword">gc</span><span class="hljs-punctuation">,</span> dat<span class="hljs-punctuation">,</span> set<span class="hljs-punctuation">,</span> clr<span class="hljs-punctuation">,</span> flags)<span class="hljs-comment">;</span><br>	if (<span class="hljs-keyword">ret</span>)<br>		return <span class="hljs-keyword">ret</span><span class="hljs-comment">;</span><br><span class="hljs-comment"></span><br>	return <span class="hljs-keyword">ret</span><span class="hljs-comment">;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-bgpio-setup-io"><a href="#3-bgpio-setup-io" class="headerlink" title="3.bgpio_setup_io()"></a>3.bgpio_setup_io()</h3><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs xl">static int bgpio_setup_io(struct gpio_chip *gc,<br>			  void __iomem *dat,<br>			  void __iomem *set,<br>			  void __iomem *clr,<br>			  unsigned long flags)<br>&#123;<br><br>	<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>reg_dat = dat;<br>	<span class="hljs-function"><span class="hljs-title">if</span> (!gc-&gt;</span>reg_dat)<br>		return -EINVAL;<br><br>	<span class="hljs-keyword">if</span> (set &amp;&amp; clr) &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>reg_set = set;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>reg_clr = clr;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set = bgpio_set_with_clear;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set_multiple = bgpio_set_multiple_with_clear;<br>	&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (set &amp;&amp; !clr) &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>reg_set = set;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set = bgpio_set_set;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set_multiple = bgpio_set_multiple_set;<br>	&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (flags &amp; BGPIOF_NO_OUTPUT) &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set = bgpio_set_none;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set_multiple = NULL;<br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set = bgpio_set;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>set_multiple = bgpio_set_multiple;<br>	&#125;<br><br>	<span class="hljs-keyword">if</span> (!(flags &amp; BGPIOF_UNREADABLE_REG_SET) &amp;&amp;<br>	    (flags &amp; BGPIOF_READ_OUTPUT_REG_SET)) &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>get = bgpio_get_set;<br>		<span class="hljs-function"><span class="hljs-title">if</span> (!gc-&gt;</span>be_bits)<br>			<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>get_multiple = bgpio_get_set_multiple;<br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * We deliberately avoid assigning the -&gt;get_multiple() call</span><br><span class="hljs-comment">		 * for big endian mirrored registers which are ALSO reflecting</span><br><span class="hljs-comment">		 * their value in the set register when used as output. It is</span><br><span class="hljs-comment">		 * simply too much complexity, let the GPIO core fall back to</span><br><span class="hljs-comment">		 * reading each line individually in that fringe case.</span><br><span class="hljs-comment">		 */</span><br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>get = bgpio_get;<br>		<span class="hljs-function"><span class="hljs-title">if</span> (gc-&gt;</span>be_bits)<br>			<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>get_multiple = bgpio_get_multiple_be;<br>		<span class="hljs-keyword">else</span><br>			<span class="hljs-function"><span class="hljs-title">gc</span>-&gt;</span>get_multiple = bgpio_get_multiple;<br>	&#125;<br><br>	return <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到它给我们去绑定了一些设置函数，这些函数都不需要我们去实现。这就是我们在驱动层调用gpiod_set最终执行到的地方。</p>
+<p>这个功能都是由bgpio_init（）提供的，这个函数是 <strong>Linux GPIO 子系统提供的一个通用框架函数</strong>，用于简化<strong>标准寄存器布局的 GPIO 控制器驱动编写</strong>。在bgpio_init（）之后赋值的部分是 <strong>针对特定平台额外补充的能力函数</strong>，比如request&#x2F;free&#x2F;to_irq….</p>
+<p>接着我们再次回到probe函数，有一个注册函数 err &#x3D; devm_gpiochip_add_data(&amp;pdev-&gt;dev, &amp;port-&gt;gc, port);</p>
+<p>我们跳进去查看：</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs livescript"><span class="hljs-comment">#define devm_gpiochip_add_data(dev, gc, data) (&#123; \</span><br>		<span class="hljs-keyword">static</span> struct lock_class_key lock_key;	<span class="hljs-string">\</span><br>		<span class="hljs-keyword">static</span> struct lock_class_key request_key;	  <span class="hljs-string">\</span><br>		devm_gpiochip_add_data_with_key(dev, gc, data, &amp;lock_key, <span class="hljs-string">\</span><br>					   &amp;request_key);	  <span class="hljs-string">\</span><br>	&#125;)<br></code></pre></td></tr></table></figure>
+
+<p>可以看到这里调用的就是我们之前分析过的 gpio_chip注册的那一套流程 devm_gpiochip_add_data_with_key()；</p>
+<p>到此关于GPIO子系统的内部实现就简单分析到此。</p>
+<p>未完……….</p>
+<h2 id="四、platfrom-device-、platfrom-driver-match-过程"><a href="#四、platfrom-device-、platfrom-driver-match-过程" class="headerlink" title="四、platfrom_device 、platfrom_driver match 过程"></a>四、platfrom_device 、platfrom_driver match 过程</h2><h3 id="1-platfrom-device-注册过程"><a href="#1-platfrom-device-注册过程" class="headerlink" title="1.platfrom_device 注册过程"></a>1.platfrom_device 注册过程</h3><p>platfrom_device 注册的方式有两种：第一种是手动注册，用 <code>platform_device_register()</code> 自己注册设备，另一种则是设备树生成，系统启动时，<code>of_platform_populate()</code> 扫描设备树，发现 <code>compatible</code> 字段的节点就注册成 <code>platform_device</code>。</p>
+<p>首先分析手动注册：进入platform_device_register（）；</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs clean">int platform_device_register(struct platform_device *pdev)<br>&#123;<br>    device_initialize(&amp;pdev-&gt;dev);		###初始化设备结构体 pdev-&gt;dev，清除未初始化字段，确保设备结构体状态正确。<br>    setup_pdev_dma_masks(pdev);<br>    return platform_device_add(pdev);     ###将驱动注册到内核中<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>依次进入platform_device_add（）—&gt;device_add()</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">platform_device_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> platform_device *pdev)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">device</span> *dev = &amp;pdev-&gt;dev;<br>	u32 i;<br>	<span class="hljs-type">int</span> ret;<br>	...<br>	ret = <span class="hljs-built_in">device_add</span>(dev);         &lt;----------- 添加到设备总线 <br>	<span class="hljs-keyword">if</span> (ret)<br>		<span class="hljs-keyword">goto</span> failed;<br>	...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>device_add()</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">device_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> device *dev)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">subsys_private</span> *sp;<br>	...<br>	<span class="hljs-comment">/* notify platform of device entry */</span><br>	<span class="hljs-built_in">device_platform_notify</span>(dev);<br>	<br>	error = <span class="hljs-built_in">bus_add_device</span>(dev);  &lt;-----将device加入到对应的 <span class="hljs-function">bus</span><br><span class="hljs-function">	<span class="hljs-title">if</span> <span class="hljs-params">(error)</span></span><br><span class="hljs-function">		<span class="hljs-keyword">goto</span> BusError</span>;<br>	.........<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>设备一旦添加到总线上，系统就会自动调用总线的匹配机制，找到与之匹配的驱动，进而调用驱动的 <code>.probe()</code> 函数。</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs subunit">int bus_add_device(struct device *dev)<br>&#123;<br>pr_debug(&quot;bus: &#x27;%s&#x27;: add device %s\n&quot;, sp-&gt;bus-&gt;name, dev_name(dev));<br><br><span class="hljs-keyword">error </span>= device_add_groups(dev, sp-&gt;bus-&gt;dev_groups);<br>if (error)<br>	goto out_put;<br><br><span class="hljs-keyword">error </span>= sysfs_create_link(&amp;sp-&gt;devices_kset-&gt;kobj, &amp;dev-&gt;kobj, dev_name(dev));<br>if (error)<br>	goto out_groups;<br><br><span class="hljs-keyword">error </span>= sysfs_create_link(&amp;dev-&gt;kobj, &amp;sp-&gt;subsys.kobj, &quot;subsystem&quot;);<br>if (error)<br>	goto out_subsys;<br><br>klist_add_tail(&amp;dev-&gt;p-&gt;knode_bus, &amp;sp-&gt;klist_devices);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs isbl"><span class="hljs-function"><span class="hljs-title">device_add</span>()</span><br> └── <span class="hljs-function"><span class="hljs-title">bus_add_device</span>()</span><br>      └── <span class="hljs-function"><span class="hljs-title">bus_probe_device</span>()</span><br>           └── <span class="hljs-function"><span class="hljs-title">device_initial_probe</span>()</span><br>                └── <span class="hljs-function"><span class="hljs-title">driver_match_device</span>()</span><br>                     └── <span class="hljs-function"><span class="hljs-title">probe</span>()</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-设备树转换platfrom-device"><a href="#2-设备树转换platfrom-device" class="headerlink" title="2.设备树转换platfrom_device"></a>2.设备树转换platfrom_device</h3><h3 id="3-platfrom-driver-注册过程"><a href="#3-platfrom-driver-注册过程" class="headerlink" title="3.platfrom_driver 注册过程"></a>3.platfrom_driver 注册过程</h3><p>详细讲述了platfrom_driver   .probe函数是如何调用的。</p>
+<p>但是二者之间稍有不同。暂时没有深入研究….（二者间.probe调用方式和时间）</p>
+<h2 id="五、GPIO-与Pinctrl-的关联"><a href="#五、GPIO-与Pinctrl-的关联" class="headerlink" title="五、GPIO 与Pinctrl 的关联"></a>五、GPIO 与Pinctrl 的关联</h2><p>在硬件上并没有Pinctrl这个模块，它是由软件虚拟出来的一个概念，很多时候Pinctrl的功能都是由GPIO控制器来完成的,所以说他们是密切相关的。</p>
+<p>有时候在去操作一个gpio引脚时，明明没有把它通过pinctrl配置为gpio模式，但还是能去使用，这是因为在硬件上gpio引脚都是连接在gpio控制器上的，所以默认就是gpio模式。</p>
+<h3 id="1-gpio与pinctrl的映射关系"><a href="#1-gpio与pinctrl的映射关系" class="headerlink" title="1.gpio与pinctrl的映射关系"></a>1.gpio与pinctrl的映射关系</h3><p>pinctrl_desc 和 gpio_device结构体:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_desc</span> &#123;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_pin_desc</span> *pins;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> npins;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_ops</span> *pctlops;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinmux_ops</span> *pmxops;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinconf_ops</span> *confops;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">module</span> *owner;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_GENERIC_PINCONF</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> num_custom_params;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinconf_generic_params</span> *custom_params;<br>	<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">pin_config_item</span> *custom_conf_items;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>	<span class="hljs-type">bool</span> link_consumers;<br>&#125;;<br>*******************************************************************<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_device</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">device</span>		dev;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">cdev</span>		chrdev;<br>	<span class="hljs-type">int</span>			id;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">device</span>		*mockdev;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">module</span>		*owner;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_chip</span> __rcu	*chip;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_desc</span>	*descs;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>		*valid_mask;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">srcu_struct</span>	desc_srcu;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>		base;<br>	u16			ngpio;<br>	<span class="hljs-type">bool</span>			can_sleep;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span>		*label;<br>	<span class="hljs-type">void</span>			*data;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span>        list;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">raw_notifier_head</span> line_state_notifier;<br>	<span class="hljs-type">rwlock_t</span>		line_state_lock;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">workqueue_struct</span>	*line_state_wq;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">blocking_notifier_head</span> device_notifier;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">srcu_struct</span>	srcu;<br>	...<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>先说结果，struct gpio_device里有一个struct gpio_desc *desc结构体，我们知道gpio_desc 就是某一个pin的描述符，我们说的映射关系就是如何将  struct gpio_desc *desc ——&gt; pinctrl_pin_desc *pins,然后由 pinctrl_desc 里的struct pinmux_ops *pmxops提供的reset（）、gpio_set_direction（）函数去操作设置gpio pin。</p>
+<p>需要研究的就是这个映射过程。</p>
+<p>设备树方面,以gpio1为例：</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs gherkin">gpio1: gpio<span class="hljs-meta">@209c000</span> &#123;<br>	compatible = <span class="hljs-string">&quot;fsl,imx6ul-gpio&quot;</span>, <span class="hljs-string">&quot;fsl,imx35-gpio&quot;</span>;<br>	reg = <span class="hljs-variable">&lt;0x0209c000 0x4000&gt;</span>;<br>	interrupts = <span class="hljs-variable">&lt;GIC_SPI 66 IRQ_TYPE_LEVEL_HIGH&gt;</span>,<br>		     <span class="hljs-variable">&lt;GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH&gt;</span>;<br>	clocks = <span class="hljs-variable">&lt;&amp;clks IMX6UL_CLK_GPIO1&gt;</span>;<br>	gpio-controller;<br>	<span class="hljs-comment">#gpio-cells = &lt;2&gt;;</span><br>	interrupt-controller;<br>	<span class="hljs-comment">#interrupt-cells = &lt;2&gt;;</span><br>	gpio-ranges = <span class="hljs-variable">&lt;&amp;iomuxc  0 23 10&gt;</span>, <span class="hljs-variable">&lt;&amp;iomuxc 10 17 6&gt;</span>,<br>		      <span class="hljs-variable">&lt;&amp;iomuxc 16 33 16&gt;</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到有一个gpio-ranges &#x3D; &lt;&amp;iomuxc  0 23 10&gt;, &lt;&amp;iomuxc 10 17 6&gt;,<br>					      &lt;&amp;iomuxc 16 33 16&gt;; 属性：</p>
+<p>&lt;&amp;iomuxc  0 23 10&gt; ：gpio1的第0个引脚要映射到pinctrl里的第23个引脚上，有10个引脚，可以看出一共有32个引脚。</p>
+<p>那么在代码里怎么去表示呢？有两个结构体：gpio_pin_range    pinctrl_gpio_range</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_pin_range</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> node;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_dev</span> *pctldev;     &lt;-------<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_gpio_range</span> range;<br>&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">pinctrl_gpio_range</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> node;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> id;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> base;         &lt;-------<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> pin_base;     &lt;-------<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> npins;		   <br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> <span class="hljs-type">const</span> *pins;   &lt;--------<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_chip</span> *gc;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>最终就是映射到 pctldev 里，怎么映射？使用 range 表示，base表示GPIO系统中的引脚编号（注意，是整个GPIO系统，而不是某一个GPIO控制器，如gpio1_0 在这里可能就是 100，gpio1_1 在这里可能就是 101）。</p>
+<p>pin_base则是pinctrl里的引脚编号（0~xxx）,pins表示引脚个数。</p>
+<p>从gpiod_get()入手：</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">gpiod<span class="hljs-emphasis">_get</span><br><span class="hljs-emphasis">	gpiod_get_index</span><br><span class="hljs-emphasis">		gpiod_find_and_request</span><br><span class="hljs-emphasis">					gpiod_request</span><br><span class="hljs-emphasis">						gpiod_request_</span>commit<br><span class="hljs-code">							</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title">gpiod_request_commit</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> gpio_desc *desc, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *label)</span></span><br><span class="hljs-function"></span>&#123;	<br>	...<br>	<span class="hljs-built_in">CLASS</span>(gpio_chip_guard, guard)(desc);<br>		<span class="hljs-keyword">if</span> (guard.gc-&gt;request) &#123;<br>		ret = guard.gc-&gt;<span class="hljs-built_in">request</span>(guard.gc, offset);<br>		<span class="hljs-keyword">if</span> (ret &gt; <span class="hljs-number">0</span>)<br>			ret = -EBADE;<br>	...<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_chip_guard</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_device</span> *gdev;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">gpio_chip</span> *gc;<br>	<span class="hljs-type">int</span> idx;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到就是我们如上所说最终调用的就是 gpio_chip 里的 request 函数。（其实这里和上面分析的gpiod_get（）差不多，只是分析的不是同一个功能）。</p>
+<p>在上面分析 device driver match 的过程中，gpio-mxc.c 里的probe函数有这么一段：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xl"><span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.request = mxc_gpio_request;<br><span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.free = mxc_gpio_free;<br><span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.to_irq = mxc_gpio_to_irq;<br><span class="hljs-function"><span class="hljs-title">port</span>-&gt;</span>gc.base = of_alias_get_id(np, <span class="hljs-string">&quot;gpio&quot;</span>) * <span class="hljs-number">32</span>;<br></code></pre></td></tr></table></figure>
+
+<p>可有看到这里设置了一个 mxc_gpio_request函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title">mxc_gpio_request</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> gpio_chip *chip, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">int</span> ret;<br><br>	ret = <span class="hljs-built_in">gpiochip_generic_request</span>(chip, offset);<br>	<span class="hljs-keyword">if</span> (ret)<br>		<span class="hljs-keyword">return</span> ret;<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">pm_runtime_resume_and_get</span>(chip-&gt;parent);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这里调用了一个通用的gpio_request函数</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs clean">int gpiochip_generic_request(struct gpio_chip *gc, unsigned int offset)<br>&#123;<br>#ifdef CONFIG_PINCTRL<br>	<span class="hljs-keyword">if</span> (list_empty(&amp;gc-&gt;gpiodev-&gt;pin_ranges))<br>		return <span class="hljs-number">0</span>;<br>#endif<br><br>	return pinctrl_gpio_request(gc, offset);    &lt;------<br>&#125;<br><br>#########################################################<br><br>int pinctrl_gpio_request(struct gpio_chip *gc, unsigned int offset)<br>&#123;<br>	struct pinctrl_gpio_range *range;<br>	struct pinctrl_dev *pctldev;<br>	int ret, pin;<br><br>	ret = pinctrl_get_device_gpio_range(gc, offset, &amp;pctldev, &amp;range);<br>	<span class="hljs-keyword">if</span> (ret) &#123;<br>		<span class="hljs-keyword">if</span> (pinctrl_ready_for_gpio_range(gc, offset))<br>			ret = <span class="hljs-number">0</span>;<br>		return ret;<br>	&#125;<br><br>	mutex_lock(&amp;pctldev-&gt;mutex);<br><br>	<span class="hljs-comment">/* Convert to the pin controllers number space */</span><br>	pin = gpio_to_pin(range, gc, offset);<br><br>	ret = pinmux_request_gpio(pctldev, range, pin, gc-&gt;base + offset);<br><br>	mutex_unlock(&amp;pctldev-&gt;mutex);<br><br>	return ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>pinctrl_gpio_request()里果然有一个pinctrl_ready_for_gpio_range()函数得到range,再通过gpio_to_pin（）将这个引脚转换为pin controllers number，然后执行pinmux_request_gpio(pctldev, range, pin, gc-&gt;base + offset)（这里从参数可以看出，传入的就是gpio系统的全局编号）。</p>
+<p>再接着往下看，进入 pinmux_request_gpio()</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs clean">int pinmux_request_gpio(struct pinctrl_dev *pctldev,<br>			struct pinctrl_gpio_range *range,<br>			unsigned int pin, unsigned int gpio)<br>&#123;<br>	const char *owner;<br>	int ret;<br><br>	<span class="hljs-comment">/* Conjure some name stating what chip and pin this is taken by */</span><br>	owner = kasprintf(GFP_KERNEL, <span class="hljs-string">&quot;%s:%d&quot;</span>, range-&gt;name, gpio);<br>	<span class="hljs-keyword">if</span> (!owner)<br>		return -ENOMEM;<br><br>	ret = pin_request(pctldev, pin, owner, range);     &lt;--------<br>	<span class="hljs-keyword">if</span> (ret &lt; <span class="hljs-number">0</span>)<br>		kfree(owner);<br><br>	return ret;<br>&#125;<br><br><br>#############################################<br><br>static int pin_request(struct pinctrl_dev *pctldev,<br>		       int pin, const char *owner,<br>		       struct pinctrl_gpio_range *gpio_range)<br>&#123;<br>	struct pin_desc *desc;<br>	const struct pinmux_ops *ops = pctldev-&gt;desc-&gt;pmxops;<br>	int status = -EINVAL;<br>	...<br>	<span class="hljs-comment">/* </span><br><span class="hljs-comment">	 * If there is no kind of request function for the pin we just assume</span><br><span class="hljs-comment">	 * we got it by default and proceed.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (gpio_range &amp;&amp; ops-&gt;gpio_request_enable)<br>		<span class="hljs-comment">/* This requests and enables a single GPIO pin */</span><br>		status = ops-&gt;gpio_request_enable(pctldev, gpio_range, pin);<br>	else <span class="hljs-keyword">if</span> (ops-&gt;request)<br>		status = ops-&gt;request(pctldev, pin);<br>	else<br>		status = <span class="hljs-number">0</span>;<br>	...<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>pin_request()里看到，如果 struct pinctrl_gpio_range 里提供了gpio_request_enable、request 函数，就把他设置为gpio功能，如果没有怎什么都不做。</p>
+<p>以上就是大致的映射过程。有不对的地方望指正。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于MainLine Kernel的GPIO子系统分析</div>
+      <div>http://example.com/2025/05/03/GPIO子系统/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Hailin</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年5月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/05/05/Pinctrl%E5%AD%90%E7%B3%BB%E7%BB%9F/" title="基于MainLine Kernel Pinctrl子系统分析">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">基于MainLine Kernel Pinctrl子系统分析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/22/imx6ull%E7%A7%BB%E6%A4%8D%E4%B8%BB%E7%BA%BF%E5%86%85%E6%A0%B86.12.0-rc5-dirty/" title="imx6ull移植v6.15-rc1主线内核">
+                        <span class="hidden-mobile">imx6ull移植v6.15-rc1主线内核</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
