@@ -4,6 +4,19 @@
   
   
   <entry>
+    <title></title>
+    <link href="/2025/07/31/spacemit-k1%20wifi%E8%BF%9E%E6%8E%A5/"/>
+    <url>/2025/07/31/spacemit-k1%20wifi%E8%BF%9E%E6%8E%A5/</url>
+    
+    <content type="html"><![CDATA[<h3 id="启动无线网卡-wlan0"><a href="#启动无线网卡-wlan0" class="headerlink" title="启动无线网卡 wlan0"></a>启动无线网卡 wlan0</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">ip <span class="hljs-built_in">link</span> <span class="hljs-built_in">set</span> wlan0 up<br></code></pre></td></tr></table></figure><h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs routeros">vi /etc/wpa_supplicant/wpa_supplicant.conf<br><br><span class="hljs-comment">##注意 =处不能有空格##</span><br><span class="hljs-attribute">ctrl_interface</span>=/var/run/wpa_supplicant<br><span class="hljs-attribute">update_config</span>=1<br>network=&#123;<br>    <span class="hljs-attribute">ssid</span>=<span class="hljs-string">&quot;TP-LINK_FF35&quot;</span><br>    <span class="hljs-attribute">psk</span>=<span class="hljs-string">&quot;密码&quot;</span><br>    <span class="hljs-attribute">key_mgmt</span>=WPA-PSK<br>    <span class="hljs-attribute">scan_ssid</span>=1<br>    <span class="hljs-attribute">frequency</span>=2412<br>&#125;<br></code></pre></td></tr></table></figure><h3 id="连接wifi"><a href="#连接wifi" class="headerlink" title="连接wifi"></a>连接wifi</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_supplicant</span> -B -i wlan0 -c /etc/wp<span class="hljs-built_in">a_supplicant</span>/wp<span class="hljs-built_in">a_supplicant</span>.conf<br></code></pre></td></tr></table></figure><h3 id="查看连接状态"><a href="#查看连接状态" class="headerlink" title="查看连接状态"></a>查看连接状态</h3><p>##注：如一直处于扫描状态先考虑是不是信号问题（卡了两个小时…..）</p><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_cli</span> -i wlan0 status<br></code></pre></td></tr></table></figure><h3 id="查看-附近wifi"><a href="#查看-附近wifi" class="headerlink" title="查看 附近wifi"></a>查看 附近wifi</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">wp<span class="hljs-built_in">a_cli</span> -i wlan0 scan_result<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>I2C Loopback Slave</title>
     <link href="/2025/05/12/I2C%20Loopback%20Slave/"/>
     <url>/2025/05/12/I2C%20Loopback%20Slave/</url>
